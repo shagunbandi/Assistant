@@ -12,8 +12,8 @@ EMAIL_LABELS = [
     "label:geeky-navigator ",
     "label:home",
     "label:kgp",
-    "label:orders",
-    "label:payments-and-invoices",
+    # "label:orders",
+    # "label:payments-and-invoices",
     "label:to-read",
     "label:todo",
     "label:trains,-flights-and-hotels",
@@ -21,7 +21,7 @@ EMAIL_LABELS = [
     "label:waiting",
 ]
 
-MAX_RESULTS = 10
+MAX_RESULTS = 800
 EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 SCORE_THRESHOLD = 0.1
 NUMBER_OF_DOCUMENTS = 3

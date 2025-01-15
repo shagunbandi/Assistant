@@ -2,6 +2,8 @@ import logging
 import logging.config
 import os
 
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+
 LOG_FILE_PATH = os.getenv("LOG_FILE_PATH", "application.log")
 
 LOGGING_CONFIG = {
@@ -14,24 +16,24 @@ LOGGING_CONFIG = {
     },
     "handlers": {
         "console": {
-            "level": "DEBUG",
+            "level": LOG_LEVEL,
             "class": "logging.StreamHandler",
             "formatter": "default",
         },
         "file": {
-            "level": "INFO",
+            "level": LOG_LEVEL,
             "class": "logging.FileHandler",
             "formatter": "default",
             "filename": LOG_FILE_PATH,
         },
     },
     "root": {
-        "level": "DEBUG",
+        "level": LOG_LEVEL,
         "handlers": ["console", "file"],
     },
     "loggers": {
         "assistant": {
-            "level": "DEBUG",
+            "level": LOG_LEVEL,
             "handlers": ["console", "file"],
             "propagate": False,
         },
@@ -46,6 +48,6 @@ def setup_logging():
 
 # Initialize the logger and make it available for import
 def get_logger(name=None):
-    """Get a logger with a specific name, defaults to 'assitant'."""
+    """Get a logger with a specific name, defaults to 'assistant'."""
     setup_logging()
-    return logging.getLogger(name or "assitant")
+    return logging.getLogger(name or "assistant")

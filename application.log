@@ -1,4 +1,0 @@
-2025-01-15 21:45:01,193 - assitant - INFO - JSON file already exists. Skipping email fetch.
-2025-01-15 21:45:01,193 - assitant - INFO - Vector store already exists. No need to initialize.
-2025-01-15 21:46:51,376 - services.download_emails - INFO - JSON file already exists. Skipping email fetch.
-2025-01-15 21:46:51,376 - services.gmail_vector_store - INFO - Vector store already exists. No need to initialize.

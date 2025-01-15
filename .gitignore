@@ -16,3 +16,4 @@ rag/db
 token.json
 credentials.json
 .DS_Store
+application.log
