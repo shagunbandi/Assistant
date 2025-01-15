@@ -3,6 +3,7 @@ import json
 import logging
 from services.search_gmail import search_gmail_service
 from bs4 import BeautifulSoup
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +12,16 @@ def _clean_email_body(body: str) -> str:
     """Clean the email body by removing HTML, CSS, and non-human-readable content."""
     soup = BeautifulSoup(body, "html.parser")
     clean_text = soup.get_text(separator="\n").strip()
-    return clean_text.replace("\n", "\n")
+    # Replace multiple newlines (\n) with a single newline
+    clean_text = re.sub(r"\n+", "\n", clean_text)
+
+    # Replace multiple newlines (\n) with a single newline
+    clean_text = re.sub(r"\r+", "\r", clean_text)
+
+    # Replace multiple spaces with a single space
+    clean_text = re.sub(r"\s+", " ", clean_text)
+
+    return clean_text.strip()
 
 
 def fetch_emails_to_json(

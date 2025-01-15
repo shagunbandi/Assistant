@@ -11,7 +11,6 @@ EMAIL_LABELS = [
     "label:fareharbor",
     "label:geeky-navigator ",
     "label:home",
-    "label:investments",
     "label:kgp",
     "label:orders",
     "label:payments-and-invoices",
@@ -21,8 +20,9 @@ EMAIL_LABELS = [
     "label:us-visa",
     "label:waiting",
 ]
+
 MAX_RESULTS = 10
-EMBEDDING_MODEL = "sentence-transformers/all-mpnet-base-v2"
+EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 SCORE_THRESHOLD = 0.1
 NUMBER_OF_DOCUMENTS = 3
-VERBOSE = False
+VERBOSE = True
