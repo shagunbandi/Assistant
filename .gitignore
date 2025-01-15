@@ -1,0 +1,17 @@
+# .gitignore
+.env
+.python-version
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+.venv/
+.uv/
+rag/data
+rag/db
+token.json
+credentials.json
