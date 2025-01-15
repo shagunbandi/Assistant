@@ -1,7 +1,10 @@
 import os
 import json
+import logging
 from services.search_gmail import search_gmail_service
 from bs4 import BeautifulSoup
+
+logger = logging.getLogger(__name__)
 
 
 def _clean_email_body(body: str) -> str:
@@ -26,7 +29,7 @@ def fetch_emails_to_json(
         all_emails = []
 
         if query:
-            print(f"Fetching emails with query: {query}")
+            logger.info(f"Fetching emails with query: {query}")
             emails = search_gmail_service(query=query, max_results=max_results)
 
             # Clean email bodies
@@ -36,7 +39,7 @@ def fetch_emails_to_json(
             all_emails.extend(emails)
         else:
             combined_query = " OR ".join(labels)
-            print(f"Fetching emails with combined query: {combined_query}")
+            logger.info(f"Fetching emails with combined query: {combined_query}")
             emails = search_gmail_service(query=combined_query, max_results=max_results)
 
             # Clean email bodies and resolve labels
@@ -46,9 +49,11 @@ def fetch_emails_to_json(
             all_emails.extend(emails)
 
         # Save all cleaned emails to JSON
-        print(f"Saving {len(all_emails)} emails to {download_json_file_path}...")
+        logger.info(f"Saving {len(all_emails)} emails to {download_json_file_path}...")
         with open(download_json_file_path, "w", encoding="utf-8") as json_file:
             json.dump(all_emails, json_file, ensure_ascii=False, indent=4)
-        print(f"Saved {len(all_emails)} cleaned emails to {download_json_file_path}")
+        logger.info(
+            f"Saved {len(all_emails)} cleaned emails to {download_json_file_path}"
+        )
     else:
-        print("JSON file already exists. Skipping email fetch.")
+        logger.info("JSON file already exists. Skipping email fetch.")

@@ -4,12 +4,15 @@ from langchain_community.document_loaders import JSONLoader
 from langchain_chroma import Chroma  # Updated import
 from langchain_huggingface import HuggingFaceEmbeddings  # Updated import
 from config import EMBEDDING_MODEL
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def initialize_vector_store(json_file_path, persistent_directory):
     """Create a vector store if it does not already exist."""
     if not os.path.exists(persistent_directory):
-        print("Persistent directory does not exist. Initializing vector store...")
+        logger.info("Persistent directory does not exist. Initializing vector store...")
 
         # Define the jq schema to parse JSON
         jq_schema = ".[] | {page_content: .body, metadata: {subject: .subject, from: .from, timestamp: .timestamp, labels: .labels}}"
@@ -32,21 +35,23 @@ def initialize_vector_store(json_file_path, persistent_directory):
         docs = text_splitter.split_documents(documents)
 
         # Display information about the split documents
-        print("\n--- Document Chunks Information ---")
-        print(f"Number of document chunks: {len(docs)}")
-        print(f"Sample chunk:\n{docs[0].page_content}\n")
+        logger.info("\n--- Document Chunks Information ---")
+        logger.info(f"Number of document chunks: {len(docs)}")
+        logger.info(f"Sample chunk:\n{docs[0].page_content}\n")
 
         # Create embeddings using HuggingFace
-        print("\n--- Creating embeddings ---")
+        logger.info("\n--- Creating embeddings ---")
         embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
-        print("\n--- Finished creating embeddings ---")
+        logger.info("\n--- Finished creating embeddings ---")
 
         # Create the vector store and persist it automatically
-        print("\n--- Creating vector store ---")
+        logger.info("\n--- Creating vector store ---")
         db = Chroma.from_documents(
             docs, embeddings, persist_directory=persistent_directory
         )
-        print(f"\n--- Finished creating vector store at {persistent_directory} ---")
+        logger.info(
+            f"\n--- Finished creating vector store at {persistent_directory} ---"
+        )
 
     else:
-        print("Vector store already exists. No need to initialize.")
+        logger.info("Vector store already exists. No need to initialize.")
