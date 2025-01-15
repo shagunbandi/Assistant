@@ -1,12 +1,16 @@
-import os
-from langchain_chroma import Chroma  # Updated import for Chroma
-from langchain_openai import OpenAIEmbeddings
+from langchain_chroma import Chroma  # Updated import
+from langchain_huggingface import HuggingFaceEmbeddings  # Updated import
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel
-from config import EMBEDDING_MODEL, current_dir, persistent_directory
+from config import (
+    EMBEDDING_MODEL,
+    persistent_directory,
+    NUMBER_OF_DOCUMENTS,
+    SCORE_THRESHOLD,
+)
 
-# Define the embedding model
-embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL)
+# Define the embedding model using HuggingFace
+embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
 
 # Load the existing vector store with the embedding function
 db = Chroma(persist_directory=persistent_directory, embedding_function=embeddings)
@@ -20,7 +24,7 @@ def query_gmail_vector_store(query: str):
     """Query the Gmail-based vector store and retrieve relevant documents."""
     retriever = db.as_retriever(
         search_type="similarity_score_threshold",
-        search_kwargs={"k": 3, "score_threshold": 0.5},
+        search_kwargs={"k": NUMBER_OF_DOCUMENTS, "score_threshold": SCORE_THRESHOLD},
     )
     relevant_docs = retriever.invoke(query)
 

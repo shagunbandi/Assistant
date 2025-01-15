@@ -1,8 +1,8 @@
 import os
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import JSONLoader
-from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_chroma import Chroma  # Updated import
+from langchain_huggingface import HuggingFaceEmbeddings  # Updated import
 from config import EMBEDDING_MODEL
 
 
@@ -25,7 +25,7 @@ def initialize_vector_store(json_file_path, persistent_directory):
             if not isinstance(doc.page_content, str):
                 doc.page_content = str(doc.page_content)
 
-        # Split the document into chunks based on per email of 1000 tokens or smaller
+        # Split the document into chunks based on 1000 tokens or smaller
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000, chunk_overlap=100
         )
@@ -36,11 +36,9 @@ def initialize_vector_store(json_file_path, persistent_directory):
         print(f"Number of document chunks: {len(docs)}")
         print(f"Sample chunk:\n{docs[0].page_content}\n")
 
-        # Create embeddings
+        # Create embeddings using HuggingFace
         print("\n--- Creating embeddings ---")
-        embeddings = OpenAIEmbeddings(
-            model=EMBEDDING_MODEL
-        )  # Updated to use langchain_community
+        embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
         print("\n--- Finished creating embeddings ---")
 
         # Create the vector store and persist it automatically
@@ -48,7 +46,6 @@ def initialize_vector_store(json_file_path, persistent_directory):
         db = Chroma.from_documents(
             docs, embeddings, persist_directory=persistent_directory
         )
-        db.persist()
         print(f"\n--- Finished creating vector store at {persistent_directory} ---")
 
     else:

@@ -22,4 +22,6 @@ EMAIL_LABELS = [
     "label:waiting",
 ]
 MAX_RESULTS = 10
-EMBEDDING_MODEL = "text-embedding-ada-002"
+EMBEDDING_MODEL = "sentence-transformers/all-mpnet-base-v2"
+SCORE_THRESHOLD = 0.1
+NUMBER_OF_DOCUMENTS = 3
