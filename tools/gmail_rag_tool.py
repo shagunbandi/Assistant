@@ -3,13 +3,10 @@ from langchain_chroma import Chroma  # Updated import for Chroma
 from langchain_openai import OpenAIEmbeddings
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel
-
-# Define the persistent directory
-current_dir = os.path.dirname(os.path.abspath(__file__))
-persistent_directory = os.path.join(current_dir, "..", "rag", "db", "chroma_db")
+from config import EMBEDDING_MODEL, current_dir, persistent_directory
 
 # Define the embedding model
-embeddings = OpenAIEmbeddings(model="text-embedding-ada-002")
+embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL)
 
 # Load the existing vector store with the embedding function
 db = Chroma(persist_directory=persistent_directory, embedding_function=embeddings)
