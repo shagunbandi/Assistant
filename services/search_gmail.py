@@ -5,7 +5,8 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
-
+from bs4 import BeautifulSoup
+import re
 
 # If modifying these SCOPES, delete the token.json file
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
@@ -32,6 +33,22 @@ def _authenticate_gmail():
     return build("gmail", "v1", credentials=creds)
 
 
+def _clean_email_body(body: str) -> str:
+    """Clean the email body by removing HTML, CSS, and non-human-readable content."""
+    soup = BeautifulSoup(body, "html.parser")
+    clean_text = soup.get_text(separator="\n").strip()
+    # Replace multiple newlines (\n) with a single newline
+    clean_text = re.sub(r"\n+", "\n", clean_text)
+
+    # Replace multiple newlines (\n) with a single newline
+    clean_text = re.sub(r"\r+", "\r", clean_text)
+
+    # Replace multiple spaces with a single space
+    clean_text = re.sub(r"\s+", " ", clean_text)
+
+    return clean_text.strip()
+
+
 def _get_label_mapping():
     """Fetch label mapping (name to ID and ID to name) from Gmail API."""
     service = _authenticate_gmail()
@@ -42,7 +59,7 @@ def _get_label_mapping():
     return label_name_to_id, label_id_to_name
 
 
-def search_gmail_service(query: str, max_results: int = 10) -> List[Dict[str, str]]:
+def search_gmail_service(query: str, max_results: int = 5) -> List[Dict[str, str]]:
     """Search Gmail for the top relevant emails matching the query."""
     service = _authenticate_gmail()
 
@@ -122,7 +139,7 @@ def search_gmail_service(query: str, max_results: int = 10) -> List[Dict[str, st
                         "from": sender,
                         "timestamp": timestamp,
                         "labels": labels,
-                        "body": body,
+                        "body": _clean_email_body(body),
                     }
                 )
 

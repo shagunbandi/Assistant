@@ -8,8 +8,7 @@ from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from tools.time_tool import time_tool
 from tools.wikipedia_tool import wikipedia_tool
-from tools.gmail_live_tool import search_gmail_live_tool
-from tools.gmail_rag_tool import search_gmail_rag_tool
+from tools.gmail_tool import search_gmail_combined_tool
 from config import VERBOSE
 
 load_dotenv()
@@ -17,8 +16,7 @@ load_dotenv()
 # Define the tools that the agent can use
 tools = [
     time_tool,
-    search_gmail_rag_tool,
-    # search_gmail_live_tool,
+    search_gmail_combined_tool,
     # wikipedia_tool, # TODO: Fix this tool
 ]
 

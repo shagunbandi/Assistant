@@ -8,7 +8,6 @@ logger = logging.getLogger(__name__)
 
 class GmailSearchInput(BaseModel):
     query: str  # Search query for Gmail (e.g., "label:inbox")
-    max_results: int = 10  # Maximum number of results to retrieve
 
 
 # Define the tool
