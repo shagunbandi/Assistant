@@ -1,20 +1,13 @@
-from langchain_chroma import Chroma  # Updated import
-from langchain_huggingface import HuggingFaceEmbeddings  # Updated import
-from langchain_core.tools import StructuredTool
+from langchain.tools import StructuredTool
+from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_community.vectorstores import Chroma
 from pydantic import BaseModel
-from config import (
-    EMBEDDING_MODEL,
-    persistent_directory,
-    NUMBER_OF_DOCUMENTS,
-    SCORE_THRESHOLD,
-)
 
-# Define the embedding model using HuggingFace
-embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
+from config import (EMBEDDING_MODEL, NUMBER_OF_DOCUMENTS, SCORE_THRESHOLD,
+                    persistent_directory)
 
-# Load the existing vector store with the embedding function
+embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL)
 db = Chroma(persist_directory=persistent_directory, embedding_function=embeddings)
-
 
 class GmailQueryInput(BaseModel):
     query: str

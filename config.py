@@ -22,7 +22,7 @@ EMAIL_LABELS = [
 ]
 
 MAX_RESULTS = 300
-EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+EMBEDDING_MODEL = "text-embedding-3-small"
 SCORE_THRESHOLD = 0.1
 NUMBER_OF_DOCUMENTS = 3
 VERBOSE = True

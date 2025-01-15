@@ -1,12 +1,13 @@
-from typing import List, Dict
-import os
 import base64
+import os
+import re
+from typing import Dict, List
+
+from bs4 import BeautifulSoup
+from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
-from bs4 import BeautifulSoup
-import re
 
 # If modifying these SCOPES, delete the token.json file
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]

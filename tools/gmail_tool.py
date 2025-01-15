@@ -1,8 +1,10 @@
-from pydantic import BaseModel
-from langchain_core.tools import StructuredTool
-from tools.gmail_rag_tool import query_gmail_vector_store
-from tools.gmail_live_tool import search_gmail_service
 import logging
+
+from langchain_core.tools import StructuredTool
+from pydantic import BaseModel
+
+from tools.gmail_live_tool import search_gmail_service
+from tools.gmail_rag_tool import query_gmail_vector_store
 
 logger = logging.getLogger(__name__)
 

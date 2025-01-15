@@ -1,7 +1,9 @@
-from pydantic import BaseModel
-from langchain_core.tools import StructuredTool
-from services.search_gmail import search_gmail_service
 import logging
+
+from langchain_core.tools import StructuredTool
+from pydantic import BaseModel
+
+from services.search_gmail import search_gmail_service
 
 logger = logging.getLogger(__name__)
 

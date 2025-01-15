@@ -1,8 +1,10 @@
 import os
+
+from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.vectorstores import Chroma
 from langchain_community.document_loaders import JSONLoader
-from langchain_chroma import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
+
 from config import EMBEDDING_MODEL
 from logging_config import get_logger
 
@@ -39,9 +41,9 @@ def initialize_vector_store(json_file_path, persistent_directory):
         logger.info(f"Number of document chunks: {len(docs)}")
         logger.info(f"Sample chunk:\n{docs[0].page_content}\n")
 
-        # Create embeddings using HuggingFace
+        # Create embeddings using OpenAI
         logger.info("\n--- Creating embeddings ---")
-        embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
+        embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL)
         logger.info("\n--- Finished creating embeddings ---")
 
         # Create the vector store and persist it automatically
