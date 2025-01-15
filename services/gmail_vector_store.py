@@ -4,9 +4,9 @@ from langchain_community.document_loaders import JSONLoader
 from langchain_chroma import Chroma  # Updated import
 from langchain_huggingface import HuggingFaceEmbeddings  # Updated import
 from config import EMBEDDING_MODEL
-import logging
+from logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def initialize_vector_store(json_file_path, persistent_directory):

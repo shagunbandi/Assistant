@@ -1,11 +1,11 @@
 import os
 import json
-import logging
 from services.search_gmail import search_gmail_service
 from bs4 import BeautifulSoup
 import re
+from logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def _clean_email_body(body: str) -> str:
