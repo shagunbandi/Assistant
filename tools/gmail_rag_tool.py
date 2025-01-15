@@ -44,22 +44,3 @@ search_gmail_rag_tool = StructuredTool(
     func=query_gmail_vector_store,
     args_schema=GmailQueryInput,
 )
-
-# Example usage
-if __name__ == "__main__":
-    input_data = {"query": "Where did I register recently?"}
-
-    try:
-        # Directly invoke the tool's function with the input instance
-        results = search_gmail_rag_tool.run(input_data)
-        print("\n--- Relevant Documents ---")
-        for result in results:
-            print(f"Document {result['Document']}:")
-            print(f"Content: {result['Content']}\n")
-            if result["Metadata"]:
-                print("Metadata:")
-                for key, value in result["Metadata"].items():
-                    print(f"  {key}: {value}")
-            print("\n---")
-    except Exception as e:
-        print(f"Error: {e}")
