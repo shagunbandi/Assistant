@@ -1,10 +1,10 @@
 import sys
+import time
 
 from dotenv import load_dotenv
 from langchain import hub
 from langchain.agents import AgentExecutor, create_structured_chat_agent
 from langchain.memory import ConversationBufferMemory
-from langchain.memory.chat_memory import ChatMessageHistory
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 
@@ -12,15 +12,13 @@ from config import VERBOSE
 from tools.gmail_rag_tool import search_gmail_rag_tool
 from tools.gmail_tool import search_gmail_combined_tool
 from tools.time_tool import time_tool
-from tools.wikipedia_tool import wikipedia_tool
 
 load_dotenv()
 
 # Define the tools that the agent can use
 tools = [
     time_tool,
-    search_gmail_rag_tool,
-    # wikipedia_tool, # TODO: Fix this tool
+    search_gmail_combined_tool,
 ]
 
 # Load the correct JSON Chat Prompt from the hub
@@ -29,9 +27,8 @@ prompt = hub.pull("hwchase17/structured-chat-agent")
 # Initialize a ChatOpenAI model
 llm = ChatOpenAI(model="gpt-4o")
 
-memory = ConversationBufferMemory(
-    chat_memory=ChatMessageHistory(), return_messages=True
-)
+# Create a structured Chat Agent with Conversation Buffer Memory
+memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
 agent = create_structured_chat_agent(llm=llm, tools=tools, prompt=prompt)
 
