@@ -1,6 +1,6 @@
 import os
 import json
-from services.search_gmail_service import search_gmail_service
+from services.search_gmail import search_gmail_service
 from bs4 import BeautifulSoup
 
 

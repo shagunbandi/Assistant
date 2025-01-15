@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from langchain_core.tools import StructuredTool
-from services.search_gmail_service import search_gmail_service
+from services.search_gmail import search_gmail_service
 
 
 class GmailSearchInput(BaseModel):
