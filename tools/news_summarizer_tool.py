@@ -1,13 +1,11 @@
 import json
 import logging
 import os
-import random
-from datetime import datetime
 from dotenv import load_dotenv
-from gnews import GNews
 from langchain_core.tools import StructuredTool
 from openai import OpenAI
 from pydantic import BaseModel, Field
+from services.fetch_news import fetch_news_article
 
 load_dotenv()
 
@@ -38,50 +36,7 @@ class NewsArticle(BaseModel):
     )
 
 
-def fetch_news_article(
-    keyword=None,
-    language="en",
-    country="IN",
-):
-    google_news = GNews(language=language, country=country, max_results=1)
-
-    if keyword:
-        news_articles = google_news.get_news(keyword)
-        topic = keyword.upper()
-    else:
-        topics = [
-            "WORLD",
-            "SCIENCE",
-            "ECONOMY",
-            "ENERGY",
-            "VIRTUAL REALITY",
-            "ROBOTICS",
-            "NUTRITION",
-            "MENTAL HEALTH",
-            "WILDLIFE",
-            "ENVIRONMENT",
-            "NEUROSCIENCE",
-            "JOBS",
-            "FOOD",
-            "TRAVEL",
-        ]
-        topic = random.choice(topics)
-        news_articles = google_news.get_news_by_topic(topic)
-
-    if news_articles:
-        article = news_articles[0]
-        return {
-            "topic": topic,
-            "title": article["title"],
-            "content": article["description"],
-            "source": article["publisher"]["title"],
-        }
-    else:
-        logger.warning(f"No news articles found for the topic/keyword: {topic}")
-        return None
-
-
-def summarize_news(news_content):
+def _summarize_news(news_content):
     """
     Summarize the news content into 60 words using OpenAI.
     """
@@ -92,12 +47,11 @@ def summarize_news(news_content):
         temperature=0.7,
     )
 
-    # Correctly access the message content
     summary = response.choices[0].message.content.strip()
     return summary
 
 
-def generate_hashtags(summary):
+def _generate_hashtags(summary):
     """
     Generate 10 trending Instagram hashtags based on the summarized news.
     """
@@ -109,12 +63,11 @@ def generate_hashtags(summary):
         temperature=0.7,
     )
 
-    # Correctly access the message content
     hashtags = response.choices[0].message.content.split()
     return hashtags
 
 
-def news_summarizer_tool(
+def news_summarizer(
     keyword: str = None,
     language: str = "en",
     country: str = "US",
@@ -124,12 +77,12 @@ def news_summarizer_tool(
     if not article:
         raise ValueError("Failed to fetch a news article")
 
-    summary_result = summarize_news(article["content"])
+    summary_result = _summarize_news(article["content"])
 
     if not summary_result:
         raise ValueError("Failed to summarize the news article")
 
-    hashtags = generate_hashtags(summary_result)
+    hashtags = _generate_hashtags(summary_result)
 
     if not hashtags:
         raise ValueError("Failed to generate hashtags for the news article")
@@ -147,7 +100,7 @@ def news_summarizer_tool(
 news_tool = StructuredTool(
     name="News Summarizer",
     description="Fetches a news article (random or based on keyword), summarizes it, and generates related hashtags.",
-    func=news_summarizer_tool,
+    func=news_summarizer,
     args_schema=NewsToolInput,
 )
 
