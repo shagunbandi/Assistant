@@ -4,7 +4,8 @@ import time
 from dotenv import load_dotenv
 from langchain import hub
 from langchain.agents import AgentExecutor, create_structured_chat_agent
-from langchain.memory import ConversationBufferMemory
+from langchain_community.chat_models import ChatOpenAI
+from langchain.memory import ConversationSummaryMemory
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 
@@ -27,9 +28,10 @@ prompt = hub.pull("hwchase17/structured-chat-agent")
 # Initialize a ChatOpenAI model
 llm = ChatOpenAI(model="gpt-4o")
 
-# Create a structured Chat Agent with Conversation Buffer Memory
-memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+# Create a Conversation Summary Memory
+memory = ConversationSummaryMemory(llm=llm, memory_key="summary")
 
+# Create a structured Chat Agent with Conversation Summary Memory
 agent = create_structured_chat_agent(llm=llm, tools=tools, prompt=prompt)
 
 agent_executor = AgentExecutor.from_agent_and_tools(
@@ -49,20 +51,22 @@ while True:
     if user_input.lower() == "exit":
         break
 
-    memory.chat_memory.add_message(HumanMessage(content=user_input))
+    memory.chat_memory.add_user_message(HumanMessage(content=user_input))
 
     # Show loading message
     sys.stdout.write("Bot is thinking...\r")
     sys.stdout.flush()
 
     # Call the agent
-    response = agent_executor.invoke({"input": user_input})
+    try:
+        response = agent_executor.invoke({"input": user_input})
+        # Print the bot's response
+        print("Bot:", response["output"])
+
+        memory.chat_memory.add_ai_message(AIMessage(content=response["output"]))
+    except Exception as e:
+        print("Error:", str(e))
 
     # Clear loading message
     sys.stdout.write(" " * 20 + "\r")
     sys.stdout.flush()
-
-    # Print the bot's response
-    print("Bot:", response["output"])
-
-    memory.chat_memory.add_message(AIMessage(content=response["output"]))
