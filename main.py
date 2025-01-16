@@ -9,7 +9,8 @@ from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 
 from config import VERBOSE
-from tools import search_gmail_combined_tool, hashtag_tool, news_tool, time_tool
+from tools import (hashtag_tool, news_tool, search_gmail_combined_tool,
+                   time_tool)
 
 load_dotenv()
 

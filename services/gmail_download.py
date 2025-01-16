@@ -2,7 +2,7 @@ import json
 import os
 
 from logging_config import get_logger
-from services.search_gmail import search_gmail_service
+from services.gmail_search import search_gmail_service
 
 logger = get_logger(__name__)
 

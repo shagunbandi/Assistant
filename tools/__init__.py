@@ -1,3 +1,5 @@
+from tools.gmail_live_tool import search_gmail_live_tool
+from tools.gmail_rag_tool import search_gmail_rag_tool
 from tools.gmail_tool import search_gmail_combined_tool
 from tools.hashtag_generator_tool import hashtag_tool
 from tools.news_summarizer_tool import news_tool
