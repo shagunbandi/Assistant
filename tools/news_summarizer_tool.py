@@ -2,7 +2,7 @@ import json
 import logging
 import os
 import random
-
+from datetime import datetime
 from dotenv import load_dotenv
 from gnews import GNews
 from langchain_core.tools import StructuredTool
@@ -19,6 +19,12 @@ class NewsToolInput(BaseModel):
     keyword: str = Field(
         None, description="Optional keyword to search for specific news"
     )
+    language: str = Field(
+        "en", description="Language of the news articles (default is English)"
+    )
+    country: str = Field(
+        "US", description="Country code for news articles (default is US)"
+    )
 
 
 class NewsArticle(BaseModel):
@@ -32,8 +38,13 @@ class NewsArticle(BaseModel):
     )
 
 
-def fetch_news_article(keyword=None):
-    google_news = GNews(language="en", country="US", max_results=1)
+def fetch_news_article(
+    keyword=None,
+    language="en",
+    country="IN",
+):
+    google_news = GNews(language=language, country=country, max_results=1)
+
     if keyword:
         news_articles = google_news.get_news(keyword)
         topic = keyword.upper()
@@ -103,16 +114,23 @@ def generate_hashtags(summary):
     return hashtags
 
 
-def news_summarizer_tool(keyword: str = None) -> NewsArticle:
-    article = fetch_news_article(keyword)
+def news_summarizer_tool(
+    keyword: str = None,
+    language: str = "en",
+    country: str = "US",
+) -> NewsArticle:
+    article = fetch_news_article(keyword, language, country)
+
     if not article:
         raise ValueError("Failed to fetch a news article")
 
     summary_result = summarize_news(article["content"])
+
     if not summary_result:
         raise ValueError("Failed to summarize the news article")
 
     hashtags = generate_hashtags(summary_result)
+
     if not hashtags:
         raise ValueError("Failed to generate hashtags for the news article")
 
@@ -128,7 +146,27 @@ def news_summarizer_tool(keyword: str = None) -> NewsArticle:
 
 news_tool = StructuredTool(
     name="News Summarizer",
-    description="Fetches a news article (random or based on keyword), summarizes it, and generates related hashtags",
+    description="Fetches a news article (random or based on keyword), summarizes it, and generates related hashtags.",
     func=news_summarizer_tool,
     args_schema=NewsToolInput,
 )
+
+if __name__ == "__main__":
+    try:
+        # Example usage without keyword
+        result = news_tool.run({})
+        print(json.dumps(result.dict(), indent=2))
+
+        # Example usage with keyword and additional parameters
+        result_with_keyword = news_tool.run(
+            {
+                "keyword": "artificial intelligence",
+                "language": "en",
+                "country": "IN",
+            }
+        )
+
+        print(json.dumps(result_with_keyword.dict(), indent=2))
+
+    except Exception as e:
+        logger.error(f"Error running news tool: {str(e)}")
