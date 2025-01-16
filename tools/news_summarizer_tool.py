@@ -1,12 +1,15 @@
 import json
-import random
+import logging
 import os
-from openai import OpenAI
+import random
+
 from dotenv import load_dotenv
 from gnews import GNews
-import logging
+from langchain.output_parsers import PydanticOutputParser
+from langchain.prompts import ChatPromptTemplate
 from langchain_core.tools import StructuredTool
-from pydantic import BaseModel, Field
+from openai import OpenAI
+from pydantic import BaseModel, Field, ValidationError
 
 load_dotenv()
 
@@ -26,7 +29,7 @@ class NewsArticle(BaseModel):
     content: str = Field(..., description="The content of the news article")
     source: str = Field(..., description="The source of the news article")
     summary: str = Field(..., description="A 60-word summary of the news article")
-    hashtags: str = Field(
+    hashtags: list[str] = Field(
         ..., description="10 trending Instagram hashtags for the news"
     )
 
@@ -69,18 +72,53 @@ def fetch_news_article(keyword=None):
         return None
 
 
+class NewsSummary(BaseModel):
+    summary: str
+    hashtags: list[str]
+
+
+# Define the output parser
+parser = PydanticOutputParser(pydantic_object=NewsSummary)
+
+
 def summarize_news(news_content):
     try:
-        prompt = f"Summarize this news article in 60 words max and write 10 hashtags for it at the end\n\n{news_content}"
+        # Define the prompt template
+        prompt_template = ChatPromptTemplate.from_template(
+            """Summarize the following news article in 60 words or less and provide 10 trending Instagram hashtags related to the content.
+            Return the result as a JSON object with two keys: 'summary' and 'hashtags'.
+
+            News article:
+            {news_content}
+
+            Response format:
+            {{
+                "summary": "Your 60-word summary here",
+                "hashtags": ["#hashtag1", "#hashtag2", ..., "#hashtag10"]
+            }}
+            """
+        )
+
+        prompt = prompt_template.format_prompt(news_content=news_content)
+
+        # Get GPT response
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": prompt},
+                {
+                    "role": "system",
+                    "content": "You are a helpful assistant that summarizes news articles and generates relevant hashtags.",
+                },
+                {"role": "user", "content": prompt.to_string()},
             ],
             temperature=0.7,
         )
-        return response.choices[0].message.content.strip()
+
+        # Parse response with LangChain
+        parsed_response = parser.parse(response.choices[0].message.content.strip())
+        return parsed_response.dict()
+    except ValidationError as ve:
+        logger.error(f"Validation error in response parsing: {ve}")
     except Exception as e:
         logger.error(f"Error in summarizing news: {str(e)}")
         return None
@@ -91,8 +129,8 @@ def news_summarizer_tool(keyword: str = None) -> NewsArticle:
     if not article:
         raise ValueError("Failed to fetch a news article")
 
-    summary = summarize_news(article["content"])
-    if not summary:
+    summary_result = summarize_news(article["content"])
+    if not summary_result:
         raise ValueError("Failed to summarize the news article")
 
     return NewsArticle(
@@ -100,8 +138,8 @@ def news_summarizer_tool(keyword: str = None) -> NewsArticle:
         title=article["title"],
         content=article["content"],
         source=article["source"],
-        summary=summary,
-        hashtags="",
+        summary=summary_result["summary"],
+        hashtags=summary_result["hashtags"],
     )
 
 
