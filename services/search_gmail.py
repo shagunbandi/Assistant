@@ -185,10 +185,3 @@ def search_gmail_service(query: str, max_results: int = 5) -> List[Dict[str, str
 
     except Exception as error:
         raise RuntimeError(f"An error occurred: {error}")
-
-
-print(
-    search_gmail_service(
-        "Flight Booking Confirmed (PIN: 8598, Booking No.: 34092752351)"
-    )
-)
