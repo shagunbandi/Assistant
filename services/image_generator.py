@@ -1,8 +1,8 @@
 import os
+
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from openai import OpenAI
-
 
 load_dotenv()
 model = ChatOpenAI(model="gpt-4o")

@@ -1,5 +1,4 @@
 import sys
-import time
 
 from dotenv import load_dotenv
 from langchain import hub
@@ -10,19 +9,12 @@ from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 
 from config import VERBOSE
-from tools.gmail_rag_tool import search_gmail_rag_tool
-from tools.gmail_tool import search_gmail_combined_tool
-from tools.news_summarizer_tool import news_tool
-from tools.time_tool import time_tool
+from tools import search_gmail_combined_tool, hashtag_tool, news_tool, time_tool
 
 load_dotenv()
 
 # Define the tools that the agent can use
-tools = [
-    time_tool,
-    search_gmail_combined_tool,
-    news_tool
-]
+tools = [time_tool, search_gmail_combined_tool, news_tool, hashtag_tool]
 
 # Load the correct JSON Chat Prompt from the hub
 prompt = hub.pull("hwchase17/structured-chat-agent")
