@@ -5,11 +5,9 @@ import random
 
 from dotenv import load_dotenv
 from gnews import GNews
-from langchain.output_parsers import PydanticOutputParser
-from langchain.prompts import ChatPromptTemplate
 from langchain_core.tools import StructuredTool
 from openai import OpenAI
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field
 
 load_dotenv()
 
@@ -72,56 +70,37 @@ def fetch_news_article(keyword=None):
         return None
 
 
-class NewsSummary(BaseModel):
-    summary: str
-    hashtags: list[str]
-
-
-# Define the output parser
-parser = PydanticOutputParser(pydantic_object=NewsSummary)
-
-
 def summarize_news(news_content):
-    try:
-        # Define the prompt template
-        prompt_template = ChatPromptTemplate.from_template(
-            """Summarize the following news article in 60 words or less and provide 10 trending Instagram hashtags related to the content.
-            Return the result as a JSON object with two keys: 'summary' and 'hashtags'.
+    """
+    Summarize the news content into 60 words using OpenAI.
+    """
+    prompt = f"Summarize this news article in 60 words:\n\n{news_content}"
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.7,
+    )
 
-            News article:
-            {news_content}
+    # Correctly access the message content
+    summary = response.choices[0].message.content.strip()
+    return summary
 
-            Response format:
-            {{
-                "summary": "Your 60-word summary here",
-                "hashtags": ["#hashtag1", "#hashtag2", ..., "#hashtag10"]
-            }}
-            """
-        )
 
-        prompt = prompt_template.format_prompt(news_content=news_content)
+def generate_hashtags(summary):
+    """
+    Generate 10 trending Instagram hashtags based on the summarized news.
+    """
+    prompt = f"Generate 10 trending Instagram hashtags for this news summary. Return them space-separated without commas or numbering. Eg. #hashtag1 #hashtag2 ... #hashtag10:\n\n{summary}"
 
-        # Get GPT response
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a helpful assistant that summarizes news articles and generates relevant hashtags.",
-                },
-                {"role": "user", "content": prompt.to_string()},
-            ],
-            temperature=0.7,
-        )
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.7,
+    )
 
-        # Parse response with LangChain
-        parsed_response = parser.parse(response.choices[0].message.content.strip())
-        return parsed_response.dict()
-    except ValidationError as ve:
-        logger.error(f"Validation error in response parsing: {ve}")
-    except Exception as e:
-        logger.error(f"Error in summarizing news: {str(e)}")
-        return None
+    # Correctly access the message content
+    hashtags = response.choices[0].message.content.split()
+    return hashtags
 
 
 def news_summarizer_tool(keyword: str = None) -> NewsArticle:
@@ -133,13 +112,17 @@ def news_summarizer_tool(keyword: str = None) -> NewsArticle:
     if not summary_result:
         raise ValueError("Failed to summarize the news article")
 
+    hashtags = generate_hashtags(summary_result)
+    if not hashtags:
+        raise ValueError("Failed to generate hashtags for the news article")
+
     return NewsArticle(
         topic=article["topic"],
         title=article["title"],
         content=article["content"],
         source=article["source"],
-        summary=summary_result["summary"],
-        hashtags=summary_result["hashtags"],
+        summary=summary_result,
+        hashtags=hashtags,
     )
 
 
@@ -149,15 +132,3 @@ news_tool = StructuredTool(
     func=news_summarizer_tool,
     args_schema=NewsToolInput,
 )
-
-if __name__ == "__main__":
-    try:
-        # Example usage without keyword
-        result = news_tool.run({})
-        print(json.dumps(result.dict(), indent=2))
-
-        # Example usage with keyword
-        result_with_keyword = news_tool.run({"keyword": "artificial intelligence"})
-        print(json.dumps(result_with_keyword.dict(), indent=2))
-    except Exception as e:
-        logger.error(f"Error running news tool: {str(e)}")
