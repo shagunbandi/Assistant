@@ -1,9 +1,9 @@
 import os
 
-from langchain_community.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
 from langchain_community.document_loaders import JSONLoader
+from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_community.vectorstores import Chroma
 
 from config import EMBEDDING_MODEL
 from logging_config import get_logger

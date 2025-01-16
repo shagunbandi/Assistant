@@ -4,8 +4,8 @@ import time
 from dotenv import load_dotenv
 from langchain import hub
 from langchain.agents import AgentExecutor, create_structured_chat_agent
-from langchain_community.chat_models import ChatOpenAI
 from langchain.memory import ConversationSummaryMemory
+from langchain_community.chat_models import ChatOpenAI
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 
