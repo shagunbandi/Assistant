@@ -36,19 +36,42 @@ def _authenticate_gmail():
 
 
 def _clean_email_body(body: str) -> str:
-    """Clean the email body by removing HTML, CSS, and non-human-readable content."""
     soup = BeautifulSoup(body, "html.parser")
-    clean_text = soup.get_text(separator="\n").strip()
-    # Replace multiple newlines (\n) with a single newline
-    clean_text = re.sub(r"\n+", "\n", clean_text)
+
+    # Remove script and style elements
+    for script in soup(["script", "style"]):
+        script.decompose()
+
+    # Remove signature (assuming it's in a div with class 'signature')
+    signature = soup.find("div", class_="signature")
+    if signature:
+        signature.decompose()
+
+    # Get text
+    text = soup.get_text()
 
     # Replace multiple newlines (\n) with a single newline
-    clean_text = re.sub(r"\r+", "\r", clean_text)
+    text = re.sub(r"\n+", "\n", text)
+
+    # Replace multiple newlines (\n) with a single newline
+    text = re.sub(r"\r+", "\r", text)
 
     # Replace multiple spaces with a single space
-    clean_text = re.sub(r"\s+", " ", clean_text)
+    text = re.sub(r"\s+", " ", text)
 
-    return clean_text.strip()
+    # Break into lines and remove leading and trailing space on each
+    lines = (line.strip() for line in text.splitlines())
+
+    # Break multi-headlines into a line each
+    chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+
+    # Drop blank lines and join the rest
+    text = "\n".join(chunk for chunk in chunks if chunk)
+
+    # Remove non-printable characters
+    text = re.sub(r"[^\x20-\x7E\n]", "", text)
+
+    return text.strip()
 
 
 def _get_label_mapping():
@@ -59,6 +82,22 @@ def _get_label_mapping():
     label_name_to_id = {label["name"]: label["id"] for label in labels}
     label_id_to_name = {label["id"]: label["name"] for label in labels}
     return label_name_to_id, label_id_to_name
+
+
+def _parse_parts(parts):
+    body = ""
+    for part in parts:
+        if part.get("mimeType") == "text/plain":
+            body += base64.urlsafe_b64decode(part["body"].get("data", "")).decode(
+                "utf-8"
+            )
+        elif part.get("mimeType") == "text/html":
+            body += base64.urlsafe_b64decode(part["body"].get("data", "")).decode(
+                "utf-8"
+            )
+        elif part.get("mimeType", "").startswith("multipart/"):
+            body += _parse_parts(part.get("parts", []))
+    return body
 
 
 def search_gmail_service(query: str, max_results: int = 5) -> List[Dict[str, str]]:
@@ -106,33 +145,25 @@ def search_gmail_service(query: str, max_results: int = 5) -> List[Dict[str, str
                     (
                         header["value"]
                         for header in headers
-                        if header["name"] == "Subject"
+                        if header["name"].lower() == "subject"
                     ),
                     "No Subject",
                 )
                 sender = next(
-                    (header["value"] for header in headers if header["name"] == "From"),
+                    (
+                        header["value"]
+                        for header in headers
+                        if header["name"].lower() == "from"
+                    ),
                     "Unknown Sender",
                 )
-                timestamp = (
-                    int(msg_data.get("internalDate", 0)) // 1000
-                )  # Convert to seconds
-                labels = msg_data.get("labelIds", [])
-                # Map label IDs to names
-                labels = [label_id_to_name.get(label, label) for label in labels]
-                body = ""
+                timestamp = int(msg_data.get("internalDate", 0)) // 1000
+                labels = [
+                    label_id_to_name.get(label, label)
+                    for label in msg_data.get("labelIds", [])
+                ]
 
-                # Decode the email body content
-                if "parts" in payload:
-                    for part in payload["parts"]:
-                        if part["mimeType"] == "text/plain" and "data" in part["body"]:
-                            body += base64.urlsafe_b64decode(
-                                part["body"]["data"]
-                            ).decode("utf-8")
-                elif "body" in payload and "data" in payload["body"]:
-                    body += base64.urlsafe_b64decode(payload["body"]["data"]).decode(
-                        "utf-8"
-                    )
+                body = _parse_parts([payload])
 
                 emails.append(
                     {
