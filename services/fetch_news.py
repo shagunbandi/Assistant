@@ -1,13 +1,18 @@
 import random
-from datetime import datetime
+from typing import Dict, Optional
+
 from gnews import GNews
+
+from logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 def fetch_news_article(
-    keyword=None,
-    language="en",
-    country="IN",
-):
+    keyword: Optional[str] = None,
+    language: str = "en",
+    country: str = "IN",
+) -> Optional[Dict[str, str]]:
     google_news = GNews(language=language, country=country, max_results=1)
 
     if keyword:

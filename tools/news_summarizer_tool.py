@@ -1,16 +1,18 @@
 import json
-import logging
 import os
+
 from dotenv import load_dotenv
 from langchain_core.tools import StructuredTool
 from openai import OpenAI
 from pydantic import BaseModel, Field
+
+from logging_config import get_logger
 from services.fetch_news import fetch_news_article
 
+logger = get_logger(__name__)
 load_dotenv()
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-logger = logging.getLogger(__name__)
 
 
 class NewsToolInput(BaseModel):

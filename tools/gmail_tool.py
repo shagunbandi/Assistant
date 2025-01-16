@@ -1,12 +1,11 @@
-import logging
-
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel
 
+from logging_config import get_logger
 from tools.gmail_live_tool import search_gmail_service
 from tools.gmail_rag_tool import query_gmail_vector_store
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class CombinedGmailSearchInput(BaseModel):
