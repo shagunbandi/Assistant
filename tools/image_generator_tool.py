@@ -1,54 +1,38 @@
 import os
 from dotenv import load_dotenv
+from langchain.prompts import ChatPromptTemplate
+from langchain.schema.output_parser import StrOutputParser
+from langchain_openai import ChatOpenAI
+from langchain.schema.runnable import RunnableLambda
 from openai import OpenAI
 
+# Load environment variables from .env
 load_dotenv()
 
-# Initialize the OpenAI client with the API key from environment variables
+# Create a ChatOpenAI model
+model = ChatOpenAI(model="gpt-4o")
+
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+# Define prompt templates (no need for separate Runnable chains)
+prompt_template = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            "You are an expert at creating prompts in less than 60 words for a given summary",
+        ),
+        ("human", "The summary is: {summary}"),
+    ]
+)
 
-def create_prompt_using_chatgpt(summary):
-    """
-    Generate a detailed image prompt using ChatGPT based on the summarized news.
-    """
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {
-                "role": "user",
-                "content": f"Generate a detailed image prompt based on the following summary: {summary}. Use no more than 60 words",
-            }
-        ],
-        temperature=0.7,
-    )
-    return response.choices[0].message.content
+# Use RunnableLambda for image generation
+generate_image_lambda = RunnableLambda(
+    lambda x: client.images.generate(prompt=x, n=1, size="1024x1024").data[0].url
+)
 
+chain = prompt_template | model | StrOutputParser() | generate_image_lambda
 
-def generate_image(prompt):
-    """
-    Generate an image based on a given text prompt using DALL·E 3.
-    """
-    response = client.images.generate(
-        prompt=prompt, n=1, size="1024x1024"  # Using a larger size for better quality
-    )
+# Example summarized news
+summarized_news = "On Day 4 of the Mahakumbh Mela 2025, held at Sangam, millions of devotees defied the biting cold to partake in the sacred ritual of a holy dip. The event has already seen participation from over 6 crore individuals. The Mahakumbh Mela continues to draw massive crowds, highlighting its significant cultural and spiritual importance."
 
-    image_url = response.data[0].url
-    return image_url
-
-
-if __name__ == "__main__":
-    # Example summarized news
-    summarized_news = "A recent article from SitePoint discusses the best programming languages for AI development, highlighting Python, R, and Julia. Python is recognized for its extensive libraries and community support, making it a favored choice for AI projects. R is valued for its capabilities in statistical analysis, while Julia is noted for its high-performance capabilities. The article also explores other languages suitable for AI, emphasizing their unique strengths and applications."
-
-    # Create a prompt using ChatGPT based on the summarized news
-    prompt = create_prompt_using_chatgpt(summarized_news)
-
-    print(prompt)
-
-    # Generate an image based on the created prompt
-    print("Generating image for summarized news...")
-
-    image_url = generate_image(prompt)
-
-    print("Generated Image URL:", image_url)
+result = chain.invoke({"summary": summarized_news})
