@@ -8,7 +8,6 @@ from openai import OpenAI
 from pydantic import BaseModel, Field
 
 from logging_config import get_logger
-from services.fetch_news import fetch_news_article
 
 logger = get_logger(__name__)
 load_dotenv()
